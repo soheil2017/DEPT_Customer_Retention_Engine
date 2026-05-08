@@ -1,6 +1,3 @@
-"This is your settings system. Instead of os.getenv "("OPENAI_API_KEY")' scattered everywhere,"
-"all config  lives here. Pydantic-settings reads from environment variables and .env automatically"
-
 from __future__ import annotations
 
 from pathlib import Path
