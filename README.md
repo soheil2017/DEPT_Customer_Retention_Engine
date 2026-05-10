@@ -1,6 +1,6 @@
 # Vodafone Proactive Retention Engine
 
-A production-grade AI service that operationalises the Vodafone churn prediction model into a fully automated retention workflow — from predictive insight to personalised, brand-compliant action.
+A production-grade AI service that operationalises the Vodafone churn prediction model into a fully automated retention workflow, from predictive insight to personalised, brand-compliant action.
 
 **Swagger docs:** `/docs`
 
@@ -15,7 +15,7 @@ Vodafone's Data Science team has a trained churn model. A model sitting in a not
 - For high-risk customers, generate a personalised, Vodafone brand-compliant retention email through a multi-layer guardrail pipeline
 - Return structured, auditable responses ready for downstream CRM or campaign tooling
 
-The result is a complete loop from raw customer data to a ready-to-send retention action — fully automated, observable, and extensible.
+The result is a complete loop from raw customer data to a ready-to-send retention action; fully automated, observable, and extensible.
 
 ---
 
@@ -101,7 +101,7 @@ GET /api/v1/retention/{customer_id}
    ┌────┴────────────────────┐
    │ prob < 0.5              │ prob ≥ 0.5
    ▼                         ▼
-{ status: "healthy"    3. Build personalised LLM prompt
+{ status: "healthy"    3. Build a personalised LLM prompt
   email: null }           (real customer data only — no invented facts)
                                │
                           4. Call OpenAI async  (or DemoLLMService)
@@ -131,7 +131,7 @@ The guardrails layer runs **after** the LLM generates the email. All 7 checks mu
 
 ### Hallucination prevention — three layers
 
-1. **Prompt grounding** — the user prompt supplies only verified facts from the customer's database record. The model cannot invent account details it was never given.
+1. **Prompt grounding** — the user prompt supplies only verified facts from the customer's database record. The model cannot invent account details that were never given.
 2. **Structured output** — `json_object` forces the model into 7 named fields with no room for free-form prose that bypasses the schema.
 3. **Post-validation** — guardrail checks reject any output containing prohibited claims before it reaches the caller.
 
@@ -165,7 +165,7 @@ uvicorn app.main:app --reload
 
 ### Demo mode — intentional production design
 
-The service runs without an OpenAI key. This is not a workaround — it is intentional production engineering:
+The service runs without an OpenAI key. This is not a workaround. It is intentional production engineering:
 
 | Mode | Condition | Email generation |
 |------|-----------|-----------------|
@@ -207,7 +207,7 @@ record     = await asyncio.to_thread(repository.get_customer, id)
 churn_prob = await asyncio.to_thread(predictor.predict, record)
 ```
 
-All heavy objects (model, CSV index, LLM client) initialised **once at startup** via FastAPI's lifespan hook — zero per-request cold-start cost.
+All heavy objects (model, CSV index, LLM client) are initialised **once at startup** via FastAPI's lifespan hook; zero per-request cold-start cost.
 
 ### Scaling beyond the PoC
 
@@ -236,7 +236,7 @@ Every request produces a full trace in Langfuse using the **Langfuse SDK v4** (O
 | Score: guardrail-compliance | 1.0 = pass, 0.0 = fail |
 | Event: guardrail-violation | Exact violations for audit |
 
-`flush()` is called synchronously at the end of every trace — critical in serverless (Vercel) where the process may freeze immediately after the HTTP response is sent.
+`flush()` is called synchronously at the end of every trace — critical in serverless (Vercel), where the process may freeze immediately after the HTTP response is sent.
 
 When Langfuse keys are absent, `NoOpTracer` is injected — identical interface, zero overhead, zero errors.
 
@@ -287,7 +287,7 @@ docker compose up --build       # hot-reload dev mode
 ```
 
 ```bash
-docker build -t retention-engine .
+docker build -t retention-engine.
 docker run -p 8000:8000 --env-file .env retention-engine   # production build
 ```
 
