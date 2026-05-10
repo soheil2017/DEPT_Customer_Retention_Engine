@@ -75,7 +75,7 @@ FastAPI's `Depends()` injects concrete instances at runtime. Tests inject mocks.
 
 **Low-risk customer — healthy, no email:**
 
-<img src="Retention_Engine/docs/screenshots/low_risk.png" width="500"/>
+<img src="Retention_Engine/docs/screenshots/low_risk.png" width="300"/>
 
 ---
 
