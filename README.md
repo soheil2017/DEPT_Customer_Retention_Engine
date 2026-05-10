@@ -67,27 +67,7 @@ FastAPI's `Depends()` injects concrete instances at runtime. Tests inject mocks.
 
 ## Workflow
 
-```
-GET /api/v1/retention/{customer_id}
-        │
-        ▼
-1. Fetch customer record          (asyncio.to_thread — non-blocking)
-        │
-        ▼
-2. Score churn probability        (asyncio.to_thread — non-blocking)
-        │
-   ┌────┴────────────────────┐
-   │ prob < 0.5              │ prob ≥ 0.5
-   ▼                         ▼
-{ status: "healthy"    3. Build a personalised LLM prompt
-  email: null }           (real customer data only — no invented facts)
-                               │
-                          4. Call OpenAI async  (or DemoLLMService)
-                               │
-                          5. Guardrails (7 checks)
-                               │
-                          6. { status: "at_risk", email: { ... } }
-```
+<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="700"/>
 
 **High-risk customer — retention email generated:**
 
