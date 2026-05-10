@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vodafone · Proactive Retention Engine</title>
+  <style>
+    /* ── Reset & base ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:        #E60000;
+      --red-dark:   #B30000;
+      --red-light:  #FFF0F0;
+      --green:      #00875A;
+      --green-light:#F0FFF8;
+      --gray-50:    #F7F8FA;
+      --gray-100:   #EFEFEF;
+      --gray-200:   #DCDCDC;
+      --gray-400:   #9A9A9A;
+      --gray-700:   #444444;
+      --black:      #1A1A1A;
+      --white:      #FFFFFF;
+      --shadow-sm:  0 1px 4px rgba(0,0,0,.08);
+      --shadow-md:  0 4px 20px rgba(0,0,0,.10);
+      --radius:     12px;
+      --sidebar-w:  300px;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--black);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────────────── */
+    .topbar {
+      background: var(--red);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+
+    .topbar-logo {
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-divider { width: 1px; height: 28px; background: rgba(255,255,255,.3); }
+
+    .topbar-title {
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: .9;
+    }
+
+    .topbar-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 56px);
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--white);
+      border-right: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .sidebar-header h2 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 10px;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      background: var(--gray-50);
+      color: var(--black);
+      transition: border-color .2s;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--red);
+      background: var(--white);
+    }
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      pointer-events: none;
+    }
+
+    .customer-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .customer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background .15s, border-color .15s;
+      font-size: 0.85rem;
+    }
+    .customer-item:hover  { background: var(--gray-50); }
+    .customer-item.active { background: var(--red-light); border-left-color: var(--red); }
+
+    .customer-item .cid { font-weight: 600; flex: 1; font-family: monospace; }
+
+    .risk-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--gray-200);
+    }
+    .risk-dot.high { background: var(--red); }
+    .risk-dot.low  { background: var(--green); }
+
+    .risk-pct {
+      font-size: 0.72rem;
+      color: var(--gray-400);
+      font-family: monospace;
+    }
+    .risk-pct.high { color: var(--red); font-weight: 600; }
+    .risk-pct.low  { color: var(--green); font-weight: 600; }
+
+    /* ── Main content ────────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Welcome state ────────────────────────────────────────────────── */
+    .welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--gray-400);
+      text-align: center;
+    }
+    .welcome .icon { font-size: 3rem; }
+    .welcome h3 { font-size: 1.1rem; color: var(--gray-700); }
+    .welcome p  { font-size: 0.85rem; max-width: 320px; line-height: 1.6; }
+
+    /* ── Loading spinner ─────────────────────────────────────────────── */
+    .spinner-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Card ────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+    }
+
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 16px;
+    }
+
+    /* ── Risk banner ─────────────────────────────────────────────────── */
+    .risk-banner {
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .risk-banner.high { background: var(--red-light); border: 1.5px solid #FFCCCC; }
+    .risk-banner.low  { background: var(--green-light); border: 1.5px solid #A3E6C8; }
+
+    /* ── Gauge (SVG semicircle) ──────────────────────────────────────── */
+    .gauge-wrap { position: relative; width: 140px; flex-shrink: 0; }
+    .gauge-wrap svg { width: 140px; height: 80px; overflow: visible; }
+
+    .gauge-track { fill: none; stroke: var(--gray-100); stroke-width: 14; stroke-linecap: round; }
+    .gauge-fill  { fill: none; stroke-width: 14; stroke-linecap: round;
+                   transition: stroke-dashoffset .9s cubic-bezier(.4,0,.2,1); }
+    .gauge-fill.high { stroke: var(--red); }
+    .gauge-fill.low  { stroke: var(--green); }
+
+    .gauge-pct {
+      position: absolute;
+      bottom: -4px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .gauge-pct.high { color: var(--red); }
+    .gauge-pct.low  { color: var(--green); }
+
+    /* ── Risk details ─────────────────────────────────────────────────── */
+    .risk-info { flex: 1; }
+    .risk-label {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .risk-label.high { color: var(--red); }
+    .risk-label.low  { color: var(--green); }
+    .risk-sub { font-size: 0.82rem; color: var(--gray-700); line-height: 1.5; }
+
+    /* ── Profile grid ─────────────────────────────────────────────────── */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .profile-item { background: var(--gray-50); border-radius: 8px; padding: 12px 14px; }
+    .profile-item .label { font-size: 0.7rem; font-weight: 600; color: var(--gray-400);
+                           text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .profile-item .value { font-size: 0.9rem; font-weight: 700; color: var(--black); }
+
+    .services-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 0;
+    }
+    .service-tag {
+      background: var(--gray-100);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    /* ── Email viewer ─────────────────────────────────────────────────── */
+    .email-card {
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .email-header {
+      background: var(--red);
+      color: var(--white);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .email-header .email-icon { font-size: 1.1rem; }
+    .email-header .email-title { font-weight: 700; font-size: 0.9rem; }
+    .email-header .email-subtitle { font-size: 0.75rem; opacity: .8; margin-left: auto; }
+
+    .email-meta {
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-100);
+      padding: 10px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      font-size: 0.78rem;
+      color: var(--gray-700);
+    }
+    .email-meta .meta-key { font-weight: 700; color: var(--gray-400); }
+
+    .email-body {
+      padding: 24px;
+      line-height: 1.7;
+      font-size: 0.88rem;
+      color: var(--black);
+    }
+
+    .cta-button {
+      display: inline-block;
+      margin-top: 8px;
+      background: var(--red);
+      color: var(--white);
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      cursor: default;
+    }
+
+    /* ── Error ───────────────────────────────────────────────────────── */
+    .error-card {
+      background: var(--red-light);
+      border: 1.5px solid #FFCCCC;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      color: var(--red-dark);
+      font-size: 0.85rem;
+    }
+    .error-card strong { display: block; margin-bottom: 4px; }
+
+    /* ── Scrollbar ────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 3px; }
+
+    /* ── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 680px) {
+      :root { --sidebar-w: 100%; }
+      .layout { flex-direction: column; height: auto; }
+      .sidebar { height: 240px; width: 100%; border-right: none; border-bottom: 1px solid var(--gray-200); }
+      .main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Top bar ──────────────────────────────────────────────────────────── -->
+<header class="topbar">
+  <span class="topbar-logo">Vodafone</span>
+  <span class="topbar-divider"></span>
+  <span class="topbar-title">Proactive Retention Engine</span>
+  <span class="topbar-badge">DEPT® PoC</span>
+</header>
+
+<!-- ── Layout ───────────────────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Customers (<span id="customerCount">…</span>)</h2>
+      <div class="search-box">
+        <input type="search" id="searchInput" placeholder="Search customer ID…" autocomplete="off" />
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-400);display:block;margin-bottom:4px;">OpenAI API Key <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input
+          type="password"
+          id="apiKeyInput"
+          placeholder="sk-… (leave blank for demo)"
+          autocomplete="off"
+          style="width:100%;padding:7px 10px;border:1px solid var(--gray-100);border-radius:8px;font-size:.78rem;font-family:inherit;background:var(--gray-50);color:var(--text);box-sizing:border-box;transition:border-color .2s;"
+          onfocus="this.style.borderColor='var(--red)'"
+          onblur="this.style.borderColor='var(--gray-100)'"
+        />
+        <div id="apiKeyStatus" style="font-size:.68rem;margin-top:4px;color:var(--gray-400);min-height:14px;"></div>
+      </div>
+    </div>
+    <div class="customer-list" id="customerList">
+      <div style="padding:20px;text-align:center;color:var(--gray-400);font-size:.8rem;">Loading…</div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main" id="main">
+    <div class="welcome">
+      <div class="icon">📊</div>
+      <h3>Select a customer</h3>
+      <p>Choose a customer from the sidebar to run the churn prediction and — if they're at risk — generate a personalised retention email.</p>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  /* ── State ──────────────────────────────────────────────────────────────── */
+  const state = {
+    allIds: [],
+    riskCache: {},      // { customerId: { prob, risk } }
+    activeId: null,
+  };
+
+  /* ── DOM helpers ─────────────────────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+  const main = $("main");
+
+  function setMain(html) { main.innerHTML = html; }
+
+  function showSpinner() {
+    setMain('<div class="spinner-wrap"><div class="spinner"></div></div>');
+  }
+
+  function showError(msg) {
+    setMain(`<div class="error-card"><strong>Something went wrong</strong>${escHtml(msg)}</div>`);
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /** Render a plain-text email field: strip markdown bold/italic, escape HTML. */
+  function renderEmailText(s) {
+    return escHtml(String(s))
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // **bold**
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');              // *italic*
+  }
+
+  /** Render the body field: convert "- item" lines into styled bullet items. */
+  function renderEmailBody(s) {
+    const lines = String(s).split('\n');
+    let html = '';
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+        const content = renderEmailText(trimmed.replace(/^[-•]\s*/, ''));
+        html += `<div style="display:flex;gap:10px;margin-bottom:8px;">
+                   <span style="color:var(--red);font-weight:700;flex-shrink:0;">•</span>
+                   <span>${content}</span>
+                 </div>`;
+      } else if (trimmed) {
+        html += `<p style="margin:0 0 10px;">${renderEmailText(trimmed)}</p>`;
+      }
+    }
+    return html;
+  }
+
+  /* ── Sidebar rendering ────────────────────────────────────────────────────── */
+  function renderList(ids) {
+    const list = $("customerList");
+    if (!ids.length) {
+      list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--gray-400);font-size:.8rem;">No results</div>';
+      return;
+    }
+    list.innerHTML = ids.map(id => {
+      const cached = state.riskCache[id];
+      const dot  = cached ? `<span class="risk-dot ${cached.risk}"></span>` : '<span class="risk-dot"></span>';
+      const pct  = cached ? `<span class="risk-pct ${cached.risk}">${(cached.prob * 100).toFixed(0)}%</span>` : '';
+      const active = id === state.activeId ? ' active' : '';
+      return `<div class="customer-item${active}" data-id="${escHtml(id)}">${dot}<span class="cid">${escHtml(id)}</span>${pct}</div>`;
+    }).join('');
+
+    list.querySelectorAll('.customer-item').forEach(el => {
+      el.addEventListener('click', () => selectCustomer(el.dataset.id));
+    });
+  }
+
+  function refreshList() {
+    const q = $("searchInput").value.toLowerCase();
+    const filtered = state.allIds.filter(id => id.toLowerCase().includes(q));
+    renderList(filtered);
+  }
+
+  /* ── Gauge SVG ───────────────────────────────────────────────────────────── */
+  // Semicircle: centre (70,70), radius 56 → arc length = π × 56 ≈ 175.9
+  const ARC = Math.PI * 56;
+
+  function gaugeHtml(prob, risk) {
+    const offset = ARC * (1 - prob); // 0 = full, ARC = empty
+    return `
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 140 74" xmlns="http://www.w3.org/2000/svg">
+        <path class="gauge-track"
+          d="M 14 70 A 56 56 0 0 1 126 70"
+          stroke-dasharray="${ARC}" stroke-dashoffset="0" />
+        <path class="gauge-fill ${risk}"
+          d="M 14 70 A 56 56 0 0 1 126 70"
+          stroke-dasharray="${ARC}" stroke-dashoffset="${offset.toFixed(2)}" />
+      </svg>
+      <div class="gauge-pct ${risk}">${(prob * 100).toFixed(1)}%</div>
+    </div>`;
+  }
+
+  /* ── Main panel rendering ─────────────────────────────────────────────────── */
+  function renderResult(id, data) {
+    const { churn_probability: prob, risk_level: risk, customer_profile: profile, retention_email: email } = data;
+
+    const riskLabel  = risk === 'high' ? '⚠ High Churn Risk' : '✓ Low Risk';
+    const riskSub    = risk === 'high'
+      ? `This customer has a <strong>${(prob*100).toFixed(1)}% probability</strong> of leaving. A personalised retention email has been generated below.`
+      : `This customer has a <strong>${(prob*100).toFixed(1)}% probability</strong> of churning. No intervention required at this time.`;
+
+    const servicesTags = profile.active_services.length
+      ? profile.active_services.map(s => `<span class="service-tag">${escHtml(s)}</span>`).join('')
+      : '<span class="service-tag">Standard plan</span>';
+
+    const emailHtml = email ? `
+      <div class="card-title">📧 Generated Retention Email</div>
+      <div class="email-card">
+        <div class="email-header">
+          <span class="email-icon">✉️</span>
+          <span class="email-title">Retention Email</span>
+          <span class="email-subtitle">${data.demo_mode ? '⚙ Demo mode · Template-generated' : 'Brand-compliant · Guardrails passed'}</span>
+        </div>
+        <div class="email-meta">
+          <span class="meta-key">From</span><span>Vodafone Customer Care &lt;retention@vodafone.com&gt;</span>
+          <span class="meta-key">To</span><span>${escHtml(id)}</span>
+          <span class="meta-key">Subject</span><span><strong>${escHtml(email.subject_line)}</strong></span>
+        </div>
+        <div class="email-body">
+          <p style="margin:0 0 12px;">${renderEmailText(email.greeting)}</p>
+          <p style="margin:0 0 16px;">${renderEmailText(email.introduction)}</p>
+          <div style="margin:0 0 16px;">${renderEmailBody(email.body)}</div>
+          <div style="margin:20px 0;">
+            <span class="cta-button">${renderEmailText(email.call_to_action)}</span>
+          </div>
+          <p style="margin:16px 0 4px;">${renderEmailText(email.closing)}</p>
+          <p style="margin:0;color:var(--gray-400);font-size:.85rem;">${renderEmailText(email.signature)}</p>
+        </div>
+      </div>
+    ` : '';
+
+    setMain(`
+      <!-- Risk banner -->
+      <div class="risk-banner ${risk}">
+        ${gaugeHtml(prob, risk)}
+        <div class="risk-info">
+          <div class="risk-label ${risk}">${riskLabel}</div>
+          <div class="risk-sub">${riskSub}</div>
+        </div>
+      </div>
+
+      <!-- Customer profile -->
+      <div class="card">
+        <div class="card-title">Customer Profile · ${escHtml(id)}</div>
+        <div class="profile-grid">
+          <div class="profile-item"><div class="label">Tenure</div><div class="value">${profile.tenure_months} months</div></div>
+          <div class="profile-item"><div class="label">Contract</div><div class="value">${escHtml(profile.contract_type)}</div></div>
+          <div class="profile-item"><div class="label">Monthly Spend</div><div class="value">£${profile.monthly_charges.toFixed(2)}</div></div>
+          <div class="profile-item"><div class="label">Risk Level</div><div class="value" style="color:${risk==='high'?'var(--red)':'var(--green)'}">${risk.toUpperCase()}</div></div>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="card-title" style="margin-bottom:8px;">Active Services</div>
+          <div class="services-list">${servicesTags}</div>
+        </div>
+      </div>
+
+      <!-- Email (high-risk only) -->
+      ${emailHtml ? `<div class="card">${emailHtml}</div>` : ''}
+    `);
+  }
+
+  /* ── Customer selection ───────────────────────────────────────────────────── */
+  async function selectCustomer(id) {
+    if (state.activeId === id) return;
+    state.activeId = id;
+    refreshList(); // highlight active
+    showSpinner();
+
+    try {
+      const apiKey = $("apiKeyInput").value.trim();
+      const headers = apiKey ? { "X-OpenAI-Key": apiKey } : {};
+      const res = await fetch(`/api/v1/retention/${encodeURIComponent(id)}`, { headers });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+
+      // Cache risk score for sidebar indicator
+      state.riskCache[id] = { prob: data.churn_probability, risk: data.risk_level };
+      refreshList();
+
+      renderResult(id, data);
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  /* ── Bootstrap ────────────────────────────────────────────────────────────── */
+  async function init() {
+    try {
+      const res = await fetch('/api/v1/retention/');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      state.allIds = data.customer_ids || [];
+      $("customerCount").textContent = state.allIds.length;
+      refreshList();
+    } catch (err) {
+      $("customerList").innerHTML =
+        `<div style="padding:16px;color:var(--red);font-size:.8rem;">Failed to load customers: ${escHtml(err.message)}</div>`;
+    }
+  }
+
+  $("searchInput").addEventListener("input", refreshList);
+
+  $("apiKeyInput").addEventListener("input", () => {
+    const key = $("apiKeyInput").value.trim();
+    const status = $("apiKeyStatus");
+    if (!key) {
+      status.textContent = "Demo mode — template emails";
+      status.style.color = "var(--gray-400)";
+    } else if (key.startsWith("sk-") && key.length > 20) {
+      status.textContent = "✓ Real LLM mode enabled";
+      status.style.color = "#16a34a";
+    } else {
+      status.textContent = "⚠ Key looks invalid";
+      status.style.color = "#d97706";
+    }
+    // Re-fetch current customer with new key
+    if (state.activeId) selectCustomer(state.activeId);
+  });
+
+  init();
+</script>
+</body>
+</html>
