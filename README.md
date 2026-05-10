@@ -23,7 +23,7 @@ The result is a complete loop from raw customer data to a ready-to-send retentio
 
 This is not a notebook or a monolithic script. Every concern is separated into its own layer:
 
-![Low-risk customer](Retention_Engine/docs/screenshots/Diagram.png)
+<img src="Retention_Engine/docs/screenshots/Diagram.png" width="700"/>
 
 ### Layer responsibilities
 
@@ -91,11 +91,11 @@ GET /api/v1/retention/{customer_id}
 
 **High-risk customer — retention email generated:**
 
-![High-risk customer](Retention_Engine/docs/screenshots/High_risk.png)
+<img src="Retention_Engine/docs/screenshots/High_risk.png" width="700"/>
 
 **Low-risk customer — healthy, no email:**
 
-![Low-risk customer](Retention_Engine/docs/screenshots/low_risk.png)
+<img src="Retention_Engine/docs/screenshots/low_risk.png" width="700"/>
 
 ---
 
@@ -138,7 +138,7 @@ uvicorn app.main:app --reload
 - **High-risk demo** → http://localhost:8000/api/v1/retention/1053-YWGNE
 - **Low-risk demo** → http://localhost:8000/api/v1/retention/3170-YWWJE
 
-![Swagger docs](Retention_Engine/docs/screenshots/Swagger_docs.png)
+<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="700"/>
 
 ### Environment variables
 
@@ -230,11 +230,11 @@ When Langfuse keys are absent, `NoOpTracer` is injected — identical interface,
 
 **Langfuse observability dashboard:**
 
-![Langfuse dashboard](Retention_Engine/docs/screenshots/Langfuse_dash.png)
+<img src="Retention_Engine/docs/screenshots/Langfuse_dash.png" width="700"/>
 
 **Langfuse trace list:**
 
-![Langfuse traces](Retention_Engine/docs/screenshots/Langfuse_dash_2.png)
+<img src="Retention_Engine/docs/screenshots/Langfuse_dash_2.png" width="700"/>
 
 ### Structured logging (implemented)
 
