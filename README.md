@@ -239,9 +239,9 @@ Every request produces a full trace in Langfuse using the **Langfuse SDK v4** (O
 | Score: guardrail-compliance | 1.0 = pass, 0.0 = fail |
 | Event: guardrail-violation | Exact violations for audit |
 
-`flush()` is called synchronously at the end of every trace — critical in serverless (Vercel), where the process may freeze immediately after the HTTP response is sent.
+`flush()` is called synchronously at the end of every trace, critical in serverless (Vercel), where the process may freeze immediately after the HTTP response is sent.
 
-When Langfuse keys are absent, `NoOpTracer` is injected — identical interface, zero overhead, zero errors.
+When Langfuse keys are absent, `NoOpTracer` is injected, identical interface, zero overhead, zero errors.
 
 **Langfuse observability dashboard:**
 
@@ -278,7 +278,7 @@ pytest tests/ -v   # 24 tests, no network or API calls required
 | `test_guardrails` | 9 | Every rule in isolation — no LLM needed |
 | `test_retention_api` | 8 | Full HTTP integration, healthy + at-risk paths |
 
-The LLM is mocked in all tests. This proves the SOLID design is real — every dependency is genuinely injectable and replaceable without touching production code.
+The LLM is mocked in all tests. This proves the SOLID design is real, every dependency is genuinely injectable and replaceable without touching production code.
 
 ---
 
@@ -292,16 +292,3 @@ The LLM is mocked in all tests. This proves the SOLID design is real — every d
 `vercel.json` routes all traffic to `api/index.py`, which re-exports the FastAPI app. The model and CSV (~19 KB) are bundled automatically.
 
 The frontend is served directly by FastAPI at `/` — a single Vercel function handles everything. It is presented as a demo layer for business stakeholders and reviewers, not as the core deliverable. **The API service is the primary engineering artifact.**
-
----
-
-## Future Improvements
-
-- **Real offers catalogue** — ground the LLM prompt with approved offers so it selects rather than invents. Add an allowlist guardrail to enforce it.
-- **Postgres + async ORM** — replace `CSVCustomerRepository` for production data volumes
-- **Redis score cache** — skip re-scoring unchanged customers; include TTL and invalidation hook
-- **Queue-based batch processing** — Celery + Redis for proactive daily retention campaigns across the full customer base
-- **Retry on guardrail failure** — retry the LLM call once with an explicit correction instruction before returning 422
-- **Rate limiting** — `slowapi` middleware to protect OpenAI spend per API key
-- **Model registry** — load model from S3/GCS rather than committing pkl files to the repo
-- **Multi-model routing** — use `gpt-4o-mini` for standard cases, `gpt-4o` for high-value customers (tenure > 24 months, spend > £100/month)
