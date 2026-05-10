@@ -103,7 +103,9 @@ The guardrails layer runs **after** the LLM generates the email. All 7 checks mu
 
 ---
 
-## Setup
+## Getting Started
+
+### Option 1 — pip (quickest, no Docker needed)
 
 ```bash
 git clone https://github.com/soheil2017/DEPT_Customer_Retention_Engine.git
@@ -119,6 +121,20 @@ uvicorn app.main:app --reload
 - **Low-risk demo** → http://localhost:8000/api/v1/retention/3170-YWWJE
 
 <img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="800"/>
+
+### Option 2 — Docker (optional)
+
+```bash
+cp .env.example .env
+docker compose up --build       # hot-reload dev mode
+```
+
+```bash
+docker build -t retention-engine .
+docker run -p 8000:8000 --env-file .env retention-engine   # production build
+```
+
+Multi-stage build · non-root user · `/health` wired into Docker `HEALTHCHECK`.
 
 ### Environment variables
 
@@ -244,22 +260,6 @@ pytest tests/ -v   # 24 tests, no network or API calls required
 | `test_retention_api` | 8 | Full HTTP integration, healthy + at-risk paths |
 
 The LLM is mocked in all tests. This proves the SOLID design is real — every dependency is genuinely injectable and replaceable without touching production code.
-
----
-
-## Docker
-
-```bash
-cp .env.example .env
-docker compose up --build       # hot-reload dev mode
-```
-
-```bash
-docker build -t retention-engine.
-docker run -p 8000:8000 --env-file .env retention-engine   # production build
-```
-
-Multi-stage build · non-root user · `/health` wired into Docker `HEALTHCHECK`.
 
 ---
 
