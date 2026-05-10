@@ -140,8 +140,8 @@ The guardrails layer runs **after** the LLM generates the email. All 7 checks mu
 ## Setup
 
 ```bash
-git clone <your-repo-url>
-cd Retention_Engine
+git clone https://github.com/soheil2017/DEPT_Customer_Retention_Engine.git
+cd DEPT_Customer_Retention_Engine/Retention_Engine
 pip install -r requirements.txt
 cp .env.example .env   # add your keys (all optional — see demo mode below)
 uvicorn app.main:app --reload
