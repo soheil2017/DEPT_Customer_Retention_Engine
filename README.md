@@ -67,15 +67,15 @@ FastAPI's `Depends()` injects concrete instances at runtime. Tests inject mocks.
 
 ## Workflow
 
-<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="700"/>
+<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="300"/>
 
 **High-risk customer — retention email generated:**
 
-<img src="Retention_Engine/docs/screenshots/High_risk.png" width="700"/>
+<img src="Retention_Engine/docs/screenshots/High_risk.png" width="500"/>
 
 **Low-risk customer — healthy, no email:**
 
-<img src="Retention_Engine/docs/screenshots/low_risk.png" width="300"/>
+<img src="Retention_Engine/docs/screenshots/low_risk.png" width="500"/>
 
 ---
 
@@ -118,7 +118,7 @@ uvicorn app.main:app --reload
 - **High-risk demo** → http://localhost:8000/api/v1/retention/1053-YWGNE
 - **Low-risk demo** → http://localhost:8000/api/v1/retention/3170-YWWJE
 
-<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="700"/>
+<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="500"/>
 
 ### Environment variables
 
