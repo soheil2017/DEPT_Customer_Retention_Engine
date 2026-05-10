@@ -14,6 +14,15 @@ Design goals:
       · guardrail score  (1.0 = pass, 0.0 = fail + violation detail)
   - `flush()` is called at the end of every trace — critical for
     serverless environments (Vercel) where the process may not linger.
+
+Langfuse SDK v4 (OTel-based) API notes:
+  - No `.trace()` method. The root span IS the trace handle.
+  - `lf.start_observation()` creates a root span (and implicitly a trace).
+  - `span.start_observation()` creates a child span.
+  - `span.score_trace()` scores the root trace.
+  - `span.set_trace_io()` sets input/output on the root trace.
+  - `span.end()` closes the span.
+  - `lf.flush()` delivers all buffered events.
 """
 from __future__ import annotations
 
@@ -26,7 +35,7 @@ from app.services.interfaces import LLMResult
 logger = logging.getLogger(__name__)
 
 
-#  Abstract interface 
+#  Abstract interface
 
 class TracerABC(ABC):
     """Observability contract — decouples the orchestrator from any specific
@@ -70,7 +79,7 @@ class TracerABC(ABC):
         """Close the trace and flush buffered data to the backend."""
 
 
-#  No-op implementation (used when Langfuse is not configured) 
+#  No-op implementation (used when Langfuse is not configured)
 
 class _NoOpTrace:
     """Silent stand-in so the orchestrator never has to check if tracing is on."""
@@ -95,20 +104,20 @@ class NoOpTracer(TracerABC):
     def end_trace(self, trace, output):                    pass
 
 
-#  Langfuse implementation 
+#  Langfuse implementation
 
 class LangfuseTracer(TracerABC):
     """Instruments the retention workflow with Langfuse traces, spans,
     generations, scores, and events.
 
-    Uses the Langfuse SDK v2 API (langfuse>=2.0,<3.0).
+    Uses the Langfuse SDK v4 (OTel-based) API.
     Every SDK call is wrapped in try/except — an observability failure
     must never cause a 500 in the core retention workflow.
     """
 
     def __init__(self, public_key: str, secret_key: str, host: str) -> None:
         try:
-            from langfuse import Langfuse  # lazy import — keeps startup fast if unused
+            from langfuse import Langfuse
             self._lf = Langfuse(
                 public_key=public_key,
                 secret_key=secret_key,
@@ -121,19 +130,23 @@ class LangfuseTracer(TracerABC):
             self._lf = None
             self._enabled = False
 
-    #  TracerABC implementation 
+    #  TracerABC implementation
 
     def start_trace(self, customer_id: str, metadata: dict[str, Any]) -> Any:
         if not self._enabled:
             return _NoOpTrace()
         try:
-            return self._lf.trace(
+            # start_observation at root level implicitly creates a new trace.
+            # The returned span IS the trace handle — child spans attach to it.
+            root = self._lf.start_observation(
                 name="retention-workflow",
-                user_id=customer_id,
-                input={"customer_id": customer_id},
-                metadata=metadata,
-                tags=["retention-engine"],
+                input={
+                    "customer_id": customer_id,
+                    "threshold":   metadata.get("threshold"),
+                },
+                metadata={"tags": ["retention-engine"], **metadata},
             )
+            return root
         except Exception as exc:
             logger.warning("Langfuse start_trace failed: %s", exc)
             return _NoOpTrace()
@@ -142,12 +155,17 @@ class LangfuseTracer(TracerABC):
         if not self._enabled:
             return
         try:
-            span = trace.span(name="data-retrieval", input={"customer_id": record.get("customerID")})
-            span.end(output={
+            span = trace.start_observation(
+                name="data-retrieval",
+                as_type="span",
+                input={"customer_id": record.get("customerID")},
+            )
+            span.update(output={
                 "tenure":          record.get("tenure"),
                 "contract":        record.get("Contract"),
                 "monthly_charges": record.get("MonthlyCharges"),
             })
+            span.end()
         except Exception as exc:
             logger.warning("Langfuse log_data_retrieval failed: %s", exc)
 
@@ -155,8 +173,12 @@ class LangfuseTracer(TracerABC):
         if not self._enabled:
             return
         try:
-            span = trace.span(name="churn-prediction")
-            span.end(output={"probability": probability, "risk_level": risk_level})
+            span = trace.start_observation(
+                name="churn-prediction",
+                as_type="span",
+            )
+            span.update(output={"probability": probability, "risk_level": risk_level})
+            span.end()
         except Exception as exc:
             logger.warning("Langfuse log_prediction failed: %s", exc)
 
@@ -171,8 +193,9 @@ class LangfuseTracer(TracerABC):
         if not self._enabled:
             return
         try:
-            gen = trace.generation(
+            gen = trace.start_observation(
                 name="email-generation",
+                as_type="generation",
                 model=model,
                 input=[
                     {"role": "system", "content": system_prompt},
@@ -180,15 +203,15 @@ class LangfuseTracer(TracerABC):
                 ],
                 model_parameters={"max_tokens": 1024, "response_format": "json_object"},
             )
-            gen.end(
+            gen.update(
                 output=result.text,
-                usage={
+                usage_details={
                     "input":  result.prompt_tokens,
                     "output": result.completion_tokens,
-                    "unit":   "TOKENS",
                 },
                 metadata={"latency_ms": round(result.latency_ms, 2)},
             )
+            gen.end()
         except Exception as exc:
             logger.warning("Langfuse log_generation failed: %s", exc)
 
@@ -196,13 +219,14 @@ class LangfuseTracer(TracerABC):
         if not self._enabled:
             return
         try:
-            trace.score(
+            # score_trace() scores the root trace (not just this span)
+            trace.score_trace(
                 name="guardrail-compliance",
                 value=1.0 if passed else 0.0,
                 comment="All checks passed" if passed else "; ".join(violations),
             )
             if not passed:
-                trace.event(
+                trace.create_event(
                     name="guardrail-violation",
                     input={"violations": violations},
                     metadata={"violation_count": len(violations)},
@@ -216,6 +240,7 @@ class LangfuseTracer(TracerABC):
             return
         try:
             trace.update(output=output)
+            trace.end()
             # flush() blocks until all queued events are delivered —
             # essential in serverless (Vercel) where the process may freeze
             # immediately after the HTTP response is sent.
