@@ -216,14 +216,6 @@ When Langfuse keys are absent, `NoOpTracer` is injected — identical interface,
 
 <img src="Retention_Engine/docs/screenshots/Langfuse_dash_2.png" width="650"/>
 
-### Structured logging (implemented)
-
-```
-INFO  | retention_orchestrator | Customer 1053-YWGNE | prob=0.9372 | risk=high
-INFO  | llm_service | LLM response | latency=1243ms | tokens in=412 out=289
-WARN  | guardrails  | Guardrail violations detected: [...]
-```
-
 Ship to Datadog, Grafana Loki, or CloudWatch by adding a log handler — no code changes.
 
 ### Production monitoring roadmap
