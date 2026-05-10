@@ -23,7 +23,7 @@ The result is a complete loop from raw customer data to a ready-to-send retentio
 
 This is not a notebook or a monolithic script. Every concern is separated into its own layer:
 
-<img src="Retention_Engine/docs/screenshots/Diagram.png" width="400"/>
+<img src="Retention_Engine/docs/screenshots/Diagram.png" width="500"/>
 
 ### Layer responsibilities
 
@@ -67,15 +67,15 @@ FastAPI's `Depends()` injects concrete instances at runtime. Tests inject mocks.
 
 ## Workflow
 
-<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="400"/>
+<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="550"/>
 
 **High-risk customer — retention email generated:**
 
-<img src="Retention_Engine/docs/screenshots/High_risk.png" width="400"/>
+<img src="Retention_Engine/docs/screenshots/High_risk.png" width="600"/>
 
 **Low-risk customer — healthy, no email:**
 
-<img src="Retention_Engine/docs/screenshots/low_risk.png" width="400"/>
+<img src="Retention_Engine/docs/screenshots/low_risk.png" width="600"/>
 
 ---
 
@@ -118,7 +118,7 @@ uvicorn app.main:app --reload
 - **High-risk demo** → http://localhost:8000/api/v1/retention/1053-YWGNE
 - **Low-risk demo** → http://localhost:8000/api/v1/retention/3170-YWWJE
 
-<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="500"/>
+<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="600"/>
 
 ### Environment variables
 
