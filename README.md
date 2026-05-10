@@ -109,7 +109,7 @@ The guardrails layer runs **after** the LLM generates the email. All 7 checks mu
 git clone https://github.com/soheil2017/DEPT_Customer_Retention_Engine.git
 cd DEPT_Customer_Retention_Engine/Retention_Engine
 pip install -r requirements.txt
-cp .env.example .env   # add your keys (all optional — see demo mode below)
+cp .env.example .env   # add your keys (all optional; see demo mode below)
 uvicorn app.main:app --reload
 ```
 
@@ -131,7 +131,7 @@ uvicorn app.main:app --reload
 | `LANGFUSE_SECRET_KEY` | *(optional)* | Enables Langfuse tracing |
 | `LANGFUSE_HOST` | `https://cloud.langfuse.com` | Langfuse server URL |
 
-### Demo mode — intentional production design
+### Demo mode: intentional production design
 
 The service runs without an OpenAI key. This is not a workaround. It is intentional production engineering:
 
