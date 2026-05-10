@@ -23,29 +23,7 @@ The result is a complete loop from raw customer data to a ready-to-send retentio
 
 This is not a notebook or a monolithic script. Every concern is separated into its own layer:
 
-```
-Client (browser / API consumer)
-         │
-         ▼
-   FastAPI  (HTTP layer)
-   ├─ Input validation
-   ├─ Error → HTTP status code mapping
-   └─ Swagger / OpenAPI docs at /docs
-         │
-         ▼
-   RetentionOrchestrator  (workflow engine)
-   ├─ Sequences all steps
-   ├─ Owns the Langfuse trace lifecycle
-   └─ Makes the routing decision
-         │
-   ┌─────┼──────────────────┐
-   ▼     ▼                  ▼
-Repository  ML Model     LLM + Guardrails
-(CSV→dict) (sklearn)    (OpenAI / Demo)
-                              │
-                         Langfuse Tracer
-                         (observability)
-```
+![Low-risk customer](Retention_Engine/docs/screenshots/Diagram.png)
 
 ### Layer responsibilities
 
