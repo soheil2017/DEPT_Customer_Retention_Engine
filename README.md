@@ -6,25 +6,6 @@ A production-grade AI service that operationalises the Vodafone churn prediction
 
 ---
 
-## Screenshots
-
-### High-risk customer — retention email generated
-![High-risk customer](Retention_Engine/docs/screenshots/High_risk.png)
-
-### Low-risk customer — healthy, no email
-![Low-risk customer](Retention_Engine/docs/screenshots/low_risk.png)
-
-### Swagger / OpenAPI docs
-![Swagger docs](Retention_Engine/docs/screenshots/Swagger_docs.png)
-
-### Langfuse observability dashboard
-![Langfuse dashboard](Retention_Engine/docs/screenshots/Langfuse_dash.png)
-
-### Langfuse trace list
-![Langfuse traces](Retention_Engine/docs/screenshots/Langfuse_dash_2.png)
-
----
-
 ## Problem Statement
 
 Vodafone's Data Science team has a trained churn model. A model sitting in a notebook generates no business value. This service closes that gap:
@@ -130,6 +111,14 @@ GET /api/v1/retention/{customer_id}
                           6. { status: "at_risk", email: { ... } }
 ```
 
+**High-risk customer — retention email generated:**
+
+![High-risk customer](Retention_Engine/docs/screenshots/High_risk.png)
+
+**Low-risk customer — healthy, no email:**
+
+![Low-risk customer](Retention_Engine/docs/screenshots/low_risk.png)
+
 ---
 
 ## Guardrails — Reliability & Safety
@@ -170,6 +159,8 @@ uvicorn app.main:app --reload
 - **Swagger docs** → http://localhost:8000/docs
 - **High-risk demo** → http://localhost:8000/api/v1/retention/1053-YWGNE
 - **Low-risk demo** → http://localhost:8000/api/v1/retention/3170-YWWJE
+
+![Swagger docs](Retention_Engine/docs/screenshots/Swagger_docs.png)
 
 ### Environment variables
 
@@ -258,6 +249,14 @@ Every request produces a full trace in Langfuse using the **Langfuse SDK v4** (O
 `flush()` is called synchronously at the end of every trace — critical in serverless (Vercel), where the process may freeze immediately after the HTTP response is sent.
 
 When Langfuse keys are absent, `NoOpTracer` is injected — identical interface, zero overhead, zero errors.
+
+**Langfuse observability dashboard:**
+
+![Langfuse dashboard](Retention_Engine/docs/screenshots/Langfuse_dash.png)
+
+**Langfuse trace list:**
+
+![Langfuse traces](Retention_Engine/docs/screenshots/Langfuse_dash_2.png)
 
 ### Structured logging (implemented)
 
