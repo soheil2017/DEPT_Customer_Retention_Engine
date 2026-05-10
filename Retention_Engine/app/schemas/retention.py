@@ -31,11 +31,11 @@ class RetentionEmail(BaseModel):
 class CustomerProfile(BaseModel):
     """Snapshot of the customer returned alongside the risk assessment."""
 
-    customer_id: str
-    tenure_months: int
-    contract_type: str
-    monthly_charges: float
-    active_services: list[str]
+    customer_id:     str   = Field(..., description="Unique customer identifier")
+    tenure_months:   int   = Field(..., description="Months the customer has been with Vodafone")
+    contract_type:   str   = Field(..., description="Contract type: Month-to-month, One year, or Two year")
+    monthly_charges: float = Field(..., description="Current monthly spend in GBP")
+    active_services: list[str] = Field(..., description="List of active add-on services")
 
 
 class RetentionResponse(BaseModel):

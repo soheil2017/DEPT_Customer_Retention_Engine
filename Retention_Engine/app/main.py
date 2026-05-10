@@ -100,11 +100,45 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Vodafone Proactive Retention Engine",
-        description=(
-            "A modular AI service that predicts customer churn and autonomously "
-            "generates personalised, brand-compliant retention emails via GenAI."
-        ),
+        description="""
+A modular AI service that operationalises the Vodafone churn prediction model
+into a fully autonomous retention workflow.
+
+## How it works
+
+1. **Fetch** — retrieve the customer's profile from the database.
+2. **Score** — run the trained sklearn model to get a churn probability.
+3. **Route**:
+   - `churn_probability < 0.5` → return `status: healthy` immediately (no LLM cost).
+   - `churn_probability ≥ 0.5` → generate a personalised retention email via OpenAI,
+     validated through a 7-check brand guardrail before returning.
+
+## Demo mode
+
+No OpenAI API key? The service runs in **demo mode** automatically —
+template-based emails are generated and every other pipeline stage
+(ML inference, guardrails, Langfuse tracing) runs fully.
+
+Alternatively, pass your own key per-request via the `X-OpenAI-Key` header.
+
+## Example customer IDs to try
+
+| Customer ID   | Expected result |
+|---------------|-----------------|
+| `1053-YWGNE`  | High-risk → retention email generated |
+| `3170-YWWJE`  | Low-risk → healthy, no email |
+
+## Source code
+
+[github.com/soheil2017/Customer_churn_DEPT](https://github.com/soheil2017/Customer_churn_DEPT)
+        """,
         version="1.0.0",
+        contact={
+            "name": "Vodafone Retention Engine — DEPT® PoC",
+        },
+        license_info={
+            "name": "Private — Case Assignment",
+        },
         lifespan=lifespan,
         docs_url="/docs",
         redoc_url="/redoc",
