@@ -67,7 +67,7 @@ FastAPI's `Depends()` injects concrete instances at runtime. Tests inject mocks.
 
 ## Workflow
 
-<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="550"/>
+<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="500"/>
 
 **High-risk customer — retention email generated:**
 
@@ -118,7 +118,7 @@ uvicorn app.main:app --reload
 - **High-risk demo** → http://localhost:8000/api/v1/retention/1053-YWGNE
 - **Low-risk demo** → http://localhost:8000/api/v1/retention/3170-YWWJE
 
-<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="600"/>
+<img src="Retention_Engine/docs/screenshots/Swagger_docs.png" width="700"/>
 
 ### Environment variables
 
@@ -210,11 +210,11 @@ When Langfuse keys are absent, `NoOpTracer` is injected — identical interface,
 
 **Langfuse observability dashboard:**
 
-<img src="Retention_Engine/docs/screenshots/Langfuse_dash.png" width="500"/>
+<img src="Retention_Engine/docs/screenshots/Langfuse_dash.png" width="650"/>
 
 **Langfuse trace list:**
 
-<img src="Retention_Engine/docs/screenshots/Langfuse_dash_2.png" width="500"/>
+<img src="Retention_Engine/docs/screenshots/Langfuse_dash_2.png" width="650"/>
 
 ### Structured logging (implemented)
 
