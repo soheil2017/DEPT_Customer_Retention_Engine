@@ -11,7 +11,7 @@ A production-grade AI service that operationalises the Vodafone churn prediction
 Vodafone's Data Science team has a trained churn model. A model sitting in a notebook generates no business value. This service closes that gap:
 
 - Score any customer's churn probability on demand via a REST API
-- Route low-risk customers instantly — no unnecessary LLM cost
+- Route low-risk customers instantly; no unnecessary LLM cost
 - For high-risk customers, generate a personalised, Vodafone brand-compliant retention email through a multi-layer guardrail pipeline
 - Return structured, auditable responses ready for downstream CRM or campaign tooling
 
@@ -115,7 +115,7 @@ GET /api/v1/retention/{customer_id}
 
 ## Guardrails — Reliability & Safety
 
-The guardrails layer runs **after** the LLM generates the email. All 7 checks must pass or the email is rejected with `422` — it never reaches the caller.
+The guardrails layer runs **after** the LLM generates the email. All 7 checks must pass, or the email is rejected with `422`. It never reaches the caller.
 
 | # | Check | Failure mode caught |
 |---|-------|---------------------|
