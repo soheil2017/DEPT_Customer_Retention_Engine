@@ -2,7 +2,7 @@
 
 A production-grade AI service that operationalises the Vodafone churn prediction model into a fully automated retention workflow — from predictive insight to personalised, brand-compliant action.
 
-**Live demo:** [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app) · **Swagger docs:** `/docs`
+**Swagger docs:** `/docs`
 
 ---
 
@@ -104,7 +104,7 @@ GET /api/v1/retention/{customer_id}
 { status: "healthy"    3. Build personalised LLM prompt
   email: null }           (real customer data only — no invented facts)
                                │
-                          4. Call OpenAI async
+                          4. Call OpenAI async  (or DemoLLMService)
                                │
                           5. Guardrails (7 checks)
                                │
@@ -156,11 +156,12 @@ uvicorn app.main:app --reload
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OPENAI_API_KEY` | *(optional)* | Omit to run in demo mode |
+| `OPENAI_API_KEY` | *(optional)* | Leave blank to run in demo mode |
 | `LLM_MODEL` | `gpt-4o-mini` | Swap to `gpt-4o` for higher quality |
 | `CHURN_THRESHOLD` | `0.5` | Risk routing cutoff |
 | `LANGFUSE_PUBLIC_KEY` | *(optional)* | Enables Langfuse tracing |
 | `LANGFUSE_SECRET_KEY` | *(optional)* | Enables Langfuse tracing |
+| `LANGFUSE_HOST` | `https://cloud.langfuse.com` | Langfuse server URL |
 
 ### Demo mode — intentional production design
 
@@ -224,14 +225,14 @@ All heavy objects (model, CSV index, LLM client) initialised **once at startup**
 
 ### Langfuse (implemented)
 
-Every request produces a full trace in Langfuse:
+Every request produces a full trace in Langfuse using the **Langfuse SDK v4** (OpenTelemetry-based):
 
 | Signal | What is captured |
 |--------|-----------------|
 | Trace | Customer ID, threshold, overall status |
 | Span: data-retrieval | Tenure, contract, monthly charges |
 | Span: churn-prediction | Probability, risk level |
-| Generation | Model, full prompt, completion, token counts, latency |
+| Generation: email-generation | Model, full prompt, completion, token counts, latency |
 | Score: guardrail-compliance | 1.0 = pass, 0.0 = fail |
 | Event: guardrail-violation | Exact violations for audit |
 
@@ -315,6 +316,5 @@ The frontend is served directly by FastAPI at `/` — a single Vercel function h
 - **Queue-based batch processing** — Celery + Redis for proactive daily retention campaigns across the full customer base
 - **Retry on guardrail failure** — retry the LLM call once with an explicit correction instruction before returning 422
 - **Rate limiting** — `slowapi` middleware to protect OpenAI spend per API key
-- **OpenTelemetry** — distributed tracing across the full stack (FastAPI → Orchestrator → OpenAI)
 - **Model registry** — load model from S3/GCS rather than committing pkl files to the repo
 - **Multi-model routing** — use `gpt-4o-mini` for standard cases, `gpt-4o` for high-value customers (tenure > 24 months, spend > £100/month)
