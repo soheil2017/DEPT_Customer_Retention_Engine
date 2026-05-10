@@ -23,7 +23,7 @@ The result is a complete loop from raw customer data to a ready-to-send retentio
 
 This is not a notebook or a monolithic script. Every concern is separated into its own layer:
 
-<img src="Retention_Engine/docs/screenshots/Diagram.png" width="700"/>
+<img src="Retention_Engine/docs/screenshots/Diagram.png" width="400"/>
 
 ### Layer responsibilities
 
@@ -67,15 +67,15 @@ FastAPI's `Depends()` injects concrete instances at runtime. Tests inject mocks.
 
 ## Workflow
 
-<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="300"/>
+<img src="Retention_Engine/docs/screenshots/Diagram_2.png" width="400"/>
 
 **High-risk customer — retention email generated:**
 
-<img src="Retention_Engine/docs/screenshots/High_risk.png" width="500"/>
+<img src="Retention_Engine/docs/screenshots/High_risk.png" width="400"/>
 
 **Low-risk customer — healthy, no email:**
 
-<img src="Retention_Engine/docs/screenshots/low_risk.png" width="500"/>
+<img src="Retention_Engine/docs/screenshots/low_risk.png" width="400"/>
 
 ---
 
@@ -210,11 +210,11 @@ When Langfuse keys are absent, `NoOpTracer` is injected — identical interface,
 
 **Langfuse observability dashboard:**
 
-<img src="Retention_Engine/docs/screenshots/Langfuse_dash.png" width="700"/>
+<img src="Retention_Engine/docs/screenshots/Langfuse_dash.png" width="500"/>
 
 **Langfuse trace list:**
 
-<img src="Retention_Engine/docs/screenshots/Langfuse_dash_2.png" width="700"/>
+<img src="Retention_Engine/docs/screenshots/Langfuse_dash_2.png" width="500"/>
 
 ### Structured logging (implemented)
 
