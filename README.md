@@ -6,6 +6,25 @@ A production-grade AI service that operationalises the Vodafone churn prediction
 
 ---
 
+## Screenshots
+
+### High-risk customer — retention email generated
+![High-risk customer](Retention_Engine/docs/screenshots/High_risk.png)
+
+### Low-risk customer — healthy, no email
+![Low-risk customer](Retention_Engine/docs/screenshots/low_risk.png)
+
+### Swagger / OpenAPI docs
+![Swagger docs](Retention_Engine/docs/screenshots/Swagger_docs.png)
+
+### Langfuse observability dashboard
+![Langfuse dashboard](Retention_Engine/docs/screenshots/Langfuse_dash.png)
+
+### Langfuse trace list
+![Langfuse traces](Retention_Engine/docs/screenshots/Langfuse_dash_2.png)
+
+---
+
 ## Problem Statement
 
 Vodafone's Data Science team has a trained churn model. A model sitting in a notebook generates no business value. This service closes that gap:
