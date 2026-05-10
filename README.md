@@ -147,6 +147,25 @@ Multi-stage build · non-root user · `/health` wired into Docker `HEALTHCHECK`.
 | `LANGFUSE_SECRET_KEY` | *(optional)* | Enables Langfuse tracing |
 | `LANGFUSE_HOST` | `https://cloud.langfuse.com` | Langfuse server URL |
 
+### Langfuse setup (optional)
+
+Langfuse gives you a full observability dashboard — traces, LLM generations, token costs, and guardrail scores per request. The service runs fine without it (`NoOpTracer` is injected automatically when keys are absent).
+
+To enable it:
+
+1. Create a free account at [cloud.langfuse.com](https://cloud.langfuse.com)
+2. Create a new project
+3. Go to **Settings → API Keys** and copy your public and secret keys
+4. Add them to your `.env`:
+
+```env
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_HOST=https://cloud.langfuse.com   # default, no change needed
+```
+
+That's it — every request will now appear in your Langfuse dashboard automatically.
+
 ### Demo mode: intentional production design
 
 The service runs without an OpenAI key. This is not a workaround. It is intentional production engineering:
